@@ -23,7 +23,7 @@ const todos = [
   { id: "t14", title: "Cycle check B",         estimateHrs: 1, priority: "low",    status: "todo",        due: "2025-09-30", assigneeId: "p3", dependsOn: ["t13"] },
 ];
 
-//Find all todos with priority not low and status not done.
+//1 Find all todos with priority not low and status not done.
 function todoPriorityCheck(workloadDetails) {
   const priorityDetails = [];
   for (let i = 0; i < workloadDetails.length; i++) {
@@ -43,10 +43,9 @@ function todoPriorityCheck(workloadDetails) {
     }
   }
   console.table(priorityDetails);
-  return priorityDetails;
+  return true;
 }
-
-//Print each person’s details as Name <email> and mark invalid emails.
+//2 Print each person’s details as Name <email> and mark invalid emails.
 function validateEmail(employeeDetails) {
   function isValidEmail(email) {
     if (typeof email !== "string" || email.length < 12) return false;
@@ -68,65 +67,71 @@ function validateEmail(employeeDetails) {
 return true;
 }
 
-//Show total estimated hours of open (not done) tasks grouped by person
+//3 Show total estimated hours of open (not done) tasks grouped by person
 function estimatedHoursOfTaskGroupedByPerson(employeeDetails, workloadDetails) {
-  const groupByPerson = {};
+  const estimatedHoursByAssignee = {};
   for (let i = 0; i < workloadDetails.length; i++) {
-    const workload = workloadDetails[i];
-    if (workload.status === "done") continue;
-    const hrs = typeof workload.estimateHrs === "number" && workload.estimateHrs >= 0 ? workload.estimateHrs : 0;
-    const assignee = workload.assigneeId || "Unassigned";
-    groupByPerson[assignee] = (groupByPerson[assignee] || 0) + hrs;
+    const task = workloadDetails[i];
+
+    if (task.status === "done") continue;
+
+    const estimatedHours = typeof task.estimateHrs === "number" && task.estimateHrs >= 0
+      ? task.estimateHrs
+      : 0;
+
+    const assigneeId = typeof task.assigneeId === "string" && task.assigneeId.trim() !== ""
+      ? task.assigneeId
+      : "Unassigned";
+
+    estimatedHoursByAssignee[assigneeId] = (estimatedHoursByAssignee[assigneeId] || 0) + estimatedHours;
   }
-  const totalEstimation = [];
+
+  const groupedEstimates = [];
   for (let i = 0; i < employeeDetails.length; i++) {
     const employee = employeeDetails[i];
-    totalEstimation.push({
-      person: employee.name || "Unnamed",
-      hrs: groupByPerson[employee.id] || 0
+    const employeeId = employee.id;
+    const employeeName = employee.name || "Unnamed";
+
+    if (typeof employeeId === "string" && employeeId.trim() !== "") {
+      groupedEstimates.push({
+        person: employeeName,
+        hrs: estimatedHoursByAssignee[employeeId] || 0
+      });
+    }
+  }
+  if (estimatedHoursByAssignee["Unassigned"]) {
+    groupedEstimates.push({
+      person: "Unassigned",
+      hrs: estimatedHoursByAssignee["Unassigned"]
     });
   }
 
-  totalEstimation.push({
-    person: "Unassigned",
-    hrs: groupByPerson["Unassigned"] || 0
-  });
 
-  console.table(totalEstimation);
-  return totalEstimation;
-}
-
-//List tasks not done and due before today
+  return groupedEstimates;
+}//4 List tasks not done and due before today
 function overdueTasks(employeeDetails, workloadDetails) {
   const today = new Date("2025-09-15");
-  const incompleteTask = [];
+  const overdue = [];
+
   for (let i = 0; i < workloadDetails.length; i++) {
     const workload = workloadDetails[i];
-    if (typeof workload.due !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(workload.due)) {
-      console.warn(`Skipping task ${workload.id}: invalid due date`);
-      continue;
-    }
+    if (workload.status === "done") continue;
     const dueDate = new Date(workload.due);
-    if (isNaN(dueDate.getTime())) {
-      console.warn(`Skipping task ${workload.id}: unparsable due date`);
-      continue;
-    }
-    if (workload.status !== "done" && dueDate.getTime() < today.getTime()) {
-      const person = employeeDetails.find(employee => employee.id === employee.assigneeId);
-      incompleteTask.push({
+    if (isNaN(dueDate.getTime())) continue;
+    if (dueDate.getTime() <= today.getTime()) {
+      const assignee = employeeDetails.find(emp => emp.id === workload.assigneeId);
+      overdue.push({
         id: workload.id,
         title: workload.title || "(Untitled)",
-        assigneeName: person?.name || "Unassigned",
+        assigneeName: assignee?.name || "Unassigned",
         due: workload.due
       });
     }
   }
-  console.table(incompleteTask);
-  return incompleteTask;
+  console.log(overdue)
+  return true;
 }
-
-
-//Check if open workload fits into capacity (5-day sprint). 5 day sprint is 40 hours
+//5.Check if open workload fits into capacity (5-day sprint). 5 day sprint is 40 hours
 function checkSprintCapacity(employeeDetails, workloadDetails) {
   const hoursByPerson = {};
   for (let i = 0; i < workloadDetails.length; i++) {
@@ -150,140 +155,16 @@ function checkSprintCapacity(employeeDetails, workloadDetails) {
     }
   }
 }
-//Find tasks that depend on a non-existent task which means the taskId in dependsOn is not a valid task.
-function findInvalidDependencies(workloadDetails) {
-  const validIdMap = {}; 
-  const outputData = [];
-  for (let i = 0; i < workloadDetails.length; i++) {
-    const workload = workloadDetails[i].id;
-    if (typeof workload === "string" && workload.trim() !== "") {
-      validIdMap[workload] = true; 
-    }
-  }
-
-  // Second pass: check dependencies
-  for (let i = 0; i < workloadDetails.length; i++) {
-    const workload = workloadDetails[i];
-    const depend = workload.dependsOn;
-
-    if (Array.isArray(depend)) {
-      for (let j = 0; j < depend.length; j++) {
-        const dependID = depend[j];
-        if (typeof dependID !== "string" || !validIdMap[depId]) {
-          outputData.push({
-            id: workload.id,
-            title: workload.title || "(Untitled)",
-            dependsOn: depend
-          });
-          break; // Stop checking further deps for this task
-        }
-      }
-    }
-  }
-
-  console.table(outputData);
-  return outputData;
-}
-
-//Find tasks that share the same title (ignoring case/spaces)
+//6.Find tasks that depend on a non-existent task which means the taskId in dependsOn is not a valid task.
 function findInvalidDependencies(workloadDetails) {
   const validIdMap = {}; 
   const result = [];
-  for (let i = 0; i < workloadDetails.length; i++) {
-    const workload = workloadDetails[i].id;
-    if (typeof workload === "string" && workload.trim() !== "") {
-      validIdMap[workload] = true;
-    }
-  }
-  for (let i = 0; i < workloadDetails.length; i++) {
-    const task = workloadDetails[i];
-    const deps = workload.dependsOn;
-
-    if (Array.isArray(deps)) {
-      for (let j = 0; j < deps.length; j++) {
-        const depId = deps[j];
-        if (typeof depId !== "string" || !validIdMap[depId]) {
-          result.push({
-            id: workload.id,
-            title: workload.title || "(Untitled)",
-            dependsOn: deps
-          });
-          break; 
-        }
-      }
-    }
-  }
-
-  console.table(result);
-  return result;
-}
-
-//List tasks that can start now, sorted by priority > due date > estimate.
-function prioritizeTask(workloadDetails) {
-  const priorityWeight = { high: 3, medium: 2, low: 1 };
-  const taskMap = {};
-  const completedMap = {};
-  for (let i = 0; i < workloadDetails.length; i++) {
-    const workload = workloadDetails[i];
-    taskMap[workload.id] = workload;
-    if (workload.status === "done") {
-      completedMap[workload.id] = true;
-    }
-  }
-
-  const startableTasks = [];
-
-  for (let i = 0; i < workloadDetails.length; i++) {
-    const workload = workloadDetails[i];
-    if (workload.assigneeId !== null) continue;
-
-    let canStart = true;
-    if (Array.isArray(workload.dependsOn)) {
-      for (let j = 0; j < workload.dependsOn.length; j++) {
-        const depId = workload.dependsOn[j];
-        if (!completedMap[depId]) {
-          canStart = false;
-          break;
-        }
-      }
-    }
-
-    if (canStart) {
-      startableTasks.push(workload);
-    }
-  }
-
-startableTasks.sort((taskA, taskB) => {
-  const priorityA = priorityWeight[taskA.priority] || 0;
-  const priorityB = priorityWeight[taskB.priority] || 0;
-  if (priorityA !== priorityB) return priorityB - priorityA;
-
-  const dueDateA = new Date(taskA.due).getTime();
-  const dueDateB = new Date(taskB.due).getTime();
-  if (dueDateA !== dueDateB) return dueDateA - dueDateB;
-
-  const estimateA = typeof taskA.estimateHrs === "number" ? taskA.estimateHrs : Infinity;
-  const estimateB = typeof taskB.estimateHrs === "number" ? taskB.estimateHrs : Infinity;
-  return estimateA - estimateB;
-});
-
-return startableTasks.map(workload => workload.id);
-}
-
-//Find tasks that depend on a non-existent task which means the taskId in dependsOn is not a valid task.
-function findInvalidDependencies(workloadDetails) {
-  const validIdMap = {}; // Replacing Set with object
-  const result = [];
-
-  // Collect valid task IDs
   for (let i = 0; i < workloadDetails.length; i++) {
     const id = workloadDetails[i].id;
     if (typeof id === "string" && id.trim() !== "") {
       validIdMap[id] = true;
     }
   }
-
-  // Detect invalid dependencies
   for (let i = 0; i < workloadDetails.length; i++) {
     const workload = workloadDetails[i];
     const deps = workload.dependsOn;
@@ -306,7 +187,8 @@ function findInvalidDependencies(workloadDetails) {
   console.table(result);
   return result;
 }
-//Find tasks that share the same title (ignoring case/spaces)
+
+//7.Find tasks that share the same title (ignoring case/spaces)
 function findDuplicateTitles(workloadDetails) {
   const titleMap = {};
 
@@ -322,7 +204,7 @@ function findDuplicateTitles(workloadDetails) {
   const result = {};
   for (let key in titleMap) {
     if (titleMap[key].length > 1) {
-      const originalTitle = workloadDetails.find(work => w.id === titleMap[key][0])?.title || "(Untitled)";
+      const originalTitle = workloadDetails.find(work => work.id === titleMap[key][0])?.title || "(Untitled)";
       result[originalTitle] = titleMap[key];
     }
   }
@@ -331,61 +213,100 @@ function findDuplicateTitles(workloadDetails) {
   return result;
 }
 
-//List tasks that can start now, sorted by priority > due date > estimate.
-function findDuplicateTitles(workloadDetails) {
-  const titleMap = {};
+//8.List tasks that can start now, sorted by priority > due date > estimate.
+function prioritizeTask(workloadDetails) {
+  const priorityWeight = { high: 3, medium: 2, low: 1 };
+  const taskMap = {};
+  const completedMap = {};
 
   for (let i = 0; i < workloadDetails.length; i++) {
     const workload = workloadDetails[i];
-    const rawTitle = typeof workload.title === "string" ? workload.title : "";
-    const key = rawTitle.toLowerCase().replace(/\s+/g, "");
+    taskMap[workload.id] = workload;
 
-    if (!titleMap[key]) titleMap[key] = [];
-    titleMap[key].push(workload.id);
-  }
-
-  const result = {};
-  for (let key in titleMap) {
-    if (titleMap[key].length > 1) {
-      const originalTitle = workloadDetails.find(t => t.id === titleMap[key][0])?.title || "(Untitled)";
-      result[originalTitle] = titleMap[key];
+    if (workload.status === "done") {
+      completedMap[workload.id] = true;
     }
   }
 
-  console.log(result);
-  return result;
-}
-function reassignmentTasks(employeeDetails, workloadDetails) {
-  const validAssignees = {}; 
-
-  for (let i = 0; i < employeeDetails.length; i++) {
-    const employee = employeeDetails[i];
-    if (typeof employee.id === "string" && employee.id.trim() !== "") {
-      validAssignees[employee.id] = true;
-    }
-  }
-
-  const tasksToReassign = [];
+  const startableTasks = [];
   for (let i = 0; i < workloadDetails.length; i++) {
     const workload = workloadDetails[i];
-    const assigneeId = workload.assigneeId;
 
-    const isDone = workload.status === "done";
-    const isValidAssignee = typeof assigneeId === "string" && validAssignees[assigneeId];
+    if (workload.assigneeId !== null) continue;
 
-    if (!isDone && !isValidAssignee) {
-      tasksToReassign.push({
-        id: workload.id || "(Missing ID)",
-        title: workload.title || "(Untitled)",
-        assigneeId: assigneeId || "(Unassigned)"
-      });
+    let canStart = true;
+    if (Array.isArray(workload.dependsOn)) {
+      for (let j = 0; j < workload.dependsOn.length; j++) {
+        const dependencyId = workload.dependsOn[j];
+        if (!completedMap[dependencyId]) {
+          canStart = false;
+          break;
+        }
+      }
+    }
+
+    if (canStart) {
+      startableTasks.push(workload);
+    }
+  }
+  startableTasks.sort((a, b) => {
+    const priorityA = priorityWeight[a.priority] || 0;
+    const priorityB = priorityWeight[b.priority] || 0;
+    if (priorityA !== priorityB) return priorityB - priorityA;
+
+    const dueA = new Date(a.due).getTime();
+    const dueB = new Date(b.due).getTime();
+    if (dueA !== dueB) return dueA - dueB;
+
+    const estimateA = typeof a.estimateHrs === "number" ? a.estimateHrs : Infinity;
+    const estimateB = typeof b.estimateHrs === "number" ? b.estimateHrs : Infinity;
+    return estimateA - estimateB;
+  });
+
+  return startableTasks.map(task => task.id);
+}
+//9.Suggest reassignment for tasks assigned to zero-capacity people. toPersonSuggested can be to multiple person // single person.
+function suggestReassignment(employeeDetails, workloadDetails) {
+  const sprintDays = 5;
+  const hoursByPerson = estimatedHoursOfTaskGroupedByPerson(employeeDetails, workloadDetails);
+  const suggestions = [];
+
+  for (let i = 0; i < workloadDetails.length; i++) {
+    const task = workloadDetails[i];
+    const assigneeId = task.assigneeId;
+    if (!assigneeId) continue;
+
+    const assignee = employeeDetails.find(person => person.id === assigneeId);
+    const isZeroCapacity = !assignee || assignee.capacityHrsPerDay === 0;
+
+    if (isZeroCapacity) {
+      const overloadedPerson = assignee?.name || "Unknown";
+      const suitableCandidates = [];
+
+      for (let j = 0; j < employeeDetails.length; j++) {
+        const candidate = employeeDetails[j];
+        const candidateCapacity = candidate.capacityHrsPerDay * sprintDays;
+        const candidateAssigned = hoursByPerson.find(p => p.person === candidate.name)?.hrs || 0;
+
+        const remainingCapacity = candidateCapacity - candidateAssigned;
+        if (remainingCapacity >= task.estimateHrs) {
+          suitableCandidates.push(candidate.name);
+        }
+      }
+
+      if (suitableCandidates.length > 0) {
+        suggestions.push({
+          todoId: task.id,
+          fromPerson: overloadedPerson,
+          toPersonSuggested: suitableCandidates
+        });
+      }
     }
   }
 
-  console.table(tasksToReassign);
-  return true;
+  return suggestions;
 }
-
+//10. Detect dependency cycles.
 function toFindDependent(workloadDetails) {
   const dependentDetails = [];
   const taskMap = {};
@@ -438,5 +359,5 @@ console.log(checkSprintCapacity(people,todos))
 console.log(findInvalidDependencies(todos))
 console.log(findDuplicateTitles(todos))
 console.log(prioritizeTask(todos))
-console.log(reassignmentTasks(people,todos))
+console.log(suggestReassignment(people,todos))
 console.log(toFindDependent(todos))
