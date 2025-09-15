@@ -43,19 +43,16 @@ function charRepeating(inputFromUser) {
       currentCount = 1;
     }
   }
-
   // Final check after loop ends
   if (currentCount > maxCount) {
     maxCount = currentCount;
     maxChar = currentChar;
   }
-
   // If no character repeats consecutively
   if (maxCount === 1) {
     console.error("No character repeats consecutively.");
     return false;
   }
-
   console.log("Most Consecutive Repeating Character:", maxChar);
   return true;
 }

@@ -4,20 +4,21 @@ checkSpaces(“user arun”) output true;*/
  So I loop each character in the string and with if condition is applied to check whether there is " "(space) in it if it is there then return the output as true else false  */
 
 function checkSpaces(inputFromUser) {
+
   // Edge Case 1: Non-string input
   if (typeof inputFromUser !== "string") {
     console.error("Invalid input: not a string");
     return false;
   }
+let outputData = false;
 
   // Edge Case 2: Empty string
   if (inputFromUser.length === 0) {
     console.error("Empty Sting");
     return false;
   }
-
-  //If the trailing and leading are to be considered true. We can omit the Edge Case 3
-  let outputData = false;
+  
+  
   for (let i = 0; i < inputFromUser.length; i++) {
     if (inputFromUser[i] === " ") {
       outputData = true;

@@ -6,14 +6,14 @@ Output [“nu”, “me”, “nt”, “ic”, “au”, “i];*/
 When the chunk reaches the specified length or it's the last character, 
 it adds the chunk to the output array and resets the temporary string to start the next group */
 
-function stringSplit(inputData, splitNumber) {
-  console.log("The Input is "+inputData );
+function stringSplit(inputString, splitNumber) {
+  console.log("The Input is "+inputString );
   console.log("The Character to be Splitted is "+splitNumber);
   let uniqueData = [];
   let temp = "";
 
   // Edge Case 1: inputData is not a string
-  if (typeof inputData !== 'string') {
+  if (typeof inputString !== 'string') {
     console.error("Error: Input must be a string.");
     return false;
   }
@@ -25,17 +25,17 @@ function stringSplit(inputData, splitNumber) {
   }
 
   // Edge Case 3: Empty string
-  if (inputData.length === 0) {
+  if (inputString.length === 0) {
     console.error("Empty string.");
     return false;
   }
 
 
-  for (let i = 0; i < inputData.length; i++) {
-    temp += inputData[i];
+  for (let i = 0; i < inputString.length; i++) {
+    temp += inputString[i];
 
   //this if functions has 2 conditions one is length to split the string and other one for the last character to be identified
-    if (temp.length === splitNumber || i === inputData.length - 1) {
+    if (temp.length === splitNumber || i === inputString.length - 1) {
       uniqueData.push(temp);
       temp = ""; // reset the temp value to add new values so the next set will be loaded
     }

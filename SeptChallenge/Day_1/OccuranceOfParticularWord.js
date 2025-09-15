@@ -15,25 +15,25 @@ function findNumberOfOccurance(inputFromUser,findingWord){
 console.log("The Given Sentence is  "+ inputFromUser);
 console.log("The Word to be find Occurance for is  "+ findingWord);
 
-convertedInput=inputFromUser.toLowerCase();
-convertedWord=findingWord.toLowerCase();
+inputFromUser=inputFromUser.toLowerCase();
+findingWord=findingWord.toLowerCase();
 
 
   // Edge Case 1: Check if inputs are strings
-    if (typeof convertedInput !== 'string' || typeof convertedWord !== 'string') {
+    if (typeof inputFromUser !== 'string' || typeof findingWord !== 'string') {
         console.error("Both sentence and word must be strings.");
         return false;
     }
     // Edge Case 2: Empty sentence or word
-    if (convertedInput.length === 0 || convertedWord.length === 0) {
+    if (inputFromUser.length === 0 || findingWord.length === 0) {
         console.error("Sentence or word is empty.");
         return false;
     }
 
 let result=[];
-for (let i = 0; i <= convertedInput.length - convertedWord.length; i++) {
-    if (convertedInput.slice(i, i + convertedWord.length) === convertedWord) {
-      result.push(convertedInput.slice(i, i + convertedWord.length));
+for (let i = 0; i <= inputFromUser.length - findingWord.length; i++) {
+    if (inputFromUser.slice(i, i + findingWord.length) === findingWord) {
+      result.push(inputFromUser.slice(i, i + findingWord.length));
     }
   }
 /*let result = [];
@@ -55,7 +55,6 @@ for (let i = 0; i <= convertedInput.length - convertedWord.length; i++) {
         result.push(matchedWord);
     }
 }*/
-
 console.log('The Number of Occurance is '+ result.length)
 return true;
 }

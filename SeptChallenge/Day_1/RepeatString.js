@@ -28,6 +28,7 @@ function repeatString(inputFromUser, repeatTimes) {
     return false;
   }
 
+
   // Edge Case 4: repeatTimes is zero,default to 1 repetition
   if (repeatTimes === 0) {
     console.error("Repeat count is zero. Defaulting to one repetition.");

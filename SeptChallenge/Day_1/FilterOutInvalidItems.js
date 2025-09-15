@@ -12,7 +12,7 @@ so iterate each item throug loop and add an if condition to check the each value
 If the array value and data type are not equal using a push method add to a new array */
 
 
-function filterOutInvalidItems(inputFromUser,typeOfRemove){
+function filterOutInvalidItems(inputFromUser,typeToRemove){
  
   // Edge case 1: input is not an array
   if (!Array.isArray(inputFromUser)) {
@@ -27,23 +27,22 @@ function filterOutInvalidItems(inputFromUser,typeOfRemove){
   }
 
   // Edge case 3: typeToRemove not provided
-  if (typeof typeOfRemove !== 'string') {
+  if (typeof typeToRemove !== 'string') {
     console.error( "Invalid type to remove");
     return false;
   }
 
 
-    let outputForInput = [];
-for (let j = 0; j < inputFromUser.length; j++) {
-    if (typeof inputFromUser[j] !== typeOfRemove) {
-       outputForInput.push(inputFromUser[j]);
-    }}
-
-
-  
+    const outputForInput = [];
+    for (let j = 0; j < inputFromUser.length; j++) 
+    {
+      if (typeof inputFromUser[j] !== typeToRemove) {
+       outputForInput.push(inputFromUser[j]);}
+    }
+ 
     // Edge case 4: Output has no value
     if(outputForInput.length==0)
-        {
+    {
     console.error(  "Error: Empty array");
     return false;}
     else console.log("The Filterd Output: " +outputForInput);
